@@ -1,6 +1,6 @@
 items:
-- name: 红宝石戒指
-  max_price: 500
+- name: 统御符印
+  max_price: 6980
   enabled: true
 settings:
   refresh_interval: 2.0

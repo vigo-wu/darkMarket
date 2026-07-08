@@ -1,23 +1,26 @@
 window_title: Dark and Darker
+reference_resolution:
+  width: 2560
+  height: 1600
 market_list:
-  left: 100
-  top: 200
-  width: 600
-  height: 400
+  left: 420
+  top: 678
+  width: 1750
+  height: 780
 refresh_button:
-  x: 700
-  y: 150
+  x: 2080
+  y: 436
 buy_button:
-  x: 650
+  x: 1749
   y: 0
-confirm_dialog:
-  confirm_button:
-    x: 500
-    y: 400
-  cancel_button:
-    x: 600
-    y: 400
-row_height: 40
+trade_dialog:
+  submit_button:
+    x: 1277
+    y: 1088
+  complete_button:
+    x: 1277
+    y: 1182
+row_height: 87
 ocr:
   lang: chi_sim+eng
   psm: 6

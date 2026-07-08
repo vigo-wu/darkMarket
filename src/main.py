@@ -4,6 +4,7 @@ darkMark - PC 游戏市场自动检测与购买脚本
 用法:
   python -m src.main              # 启动监控
   python -m src.main --dry-run    # 试运行（只检测不购买）
+  python -m src.main --test-click # 测试刷新按钮点击（3秒后执行一次）
   python tools/region_picker.py   # 配置屏幕区域
 """
 
@@ -18,6 +19,7 @@ import keyboard
 from src.auto_buyer import AutoBuyer
 from src.config_loader import load_regions, load_watchlist
 from src.market_scanner import MarketScanner
+from src.screen_capture import ScreenCapture
 from src.utils.logger import setup_logger
 
 logger = setup_logger()
@@ -31,8 +33,9 @@ class MarketBot:
         if dry_run is not None:
             self.watchlist.settings.dry_run = dry_run
 
-        self.scanner = MarketScanner(self.watchlist, self.regions)
-        self.buyer = AutoBuyer(self.regions, self.watchlist.settings)
+        self.capture = ScreenCapture(self.regions.window_title)
+        self.scanner = MarketScanner(self.watchlist, self.regions, self.capture)
+        self.buyer = AutoBuyer(self.regions, self.watchlist.settings, self.capture)
         self._paused = False
 
     def run(self):
@@ -46,7 +49,7 @@ class MarketBot:
             logger.info(f"  - {item.name} (最高 {item.max_price} gold)")
         logger.info(f"刷新间隔: {settings.refresh_interval}s")
         logger.info(f"模式: {'试运行 (不购买)' if settings.dry_run else '自动购买'}")
-        logger.info("热键: F9=暂停/继续  F10=停止  鼠标移到左上角=紧急停止")
+        logger.info("热键: F9=暂停/继续  F10=停止")
         logger.info("=" * 50)
 
         if not self.scanner.start():
@@ -119,6 +122,11 @@ def main():
         action="store_true",
         help="正式模式，启用自动购买",
     )
+    parser.add_argument(
+        "--test-click",
+        action="store_true",
+        help="测试刷新按钮点击（3秒后移动鼠标并点击一次）",
+    )
     args = parser.parse_args()
 
     dry_run = True
@@ -128,6 +136,16 @@ def main():
         dry_run = True
 
     bot = MarketBot(dry_run=dry_run)
+
+    if args.test_click:
+        logger.info(
+            "3 秒后将测试点击刷新按钮。"
+            "请保持游戏在市场界面，但不要切到游戏窗口（留在终端即可）。"
+        )
+        time.sleep(3)
+        bot.buyer.test_refresh_click()
+        return
+
     bot.run()
 
 

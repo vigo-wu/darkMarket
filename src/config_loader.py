@@ -61,14 +61,21 @@ class OcrConfig:
 
 
 @dataclass
+class Resolution:
+    width: int
+    height: int
+
+
+@dataclass
 class RegionsConfig:
     window_title: str
     market_list: Region
     refresh_button: Point
     buy_button: Point
-    confirm_dialog: dict[str, Point]
+    trade_dialog: dict[str, Point]
     row_height: int
     ocr: OcrConfig
+    reference_resolution: Resolution | None = None
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -102,6 +109,70 @@ def load_watchlist(path: Path | None = None) -> WatchlistConfig:
     return WatchlistConfig(items=items, settings=settings)
 
 
+def scale_point(
+    x: int,
+    y: int,
+    reference: Resolution | None,
+    window_size: tuple[int, int] | None,
+) -> tuple[int, int]:
+    if not reference or not window_size:
+        return x, y
+    sx = window_size[0] / reference.width
+    sy = window_size[1] / reference.height
+    return int(x * sx), int(y * sy)
+
+
+def scale_region(
+    region: Region,
+    reference: Resolution | None,
+    window_size: tuple[int, int] | None,
+) -> Region:
+    if not reference or not window_size:
+        return region
+    sx = window_size[0] / reference.width
+    sy = window_size[1] / reference.height
+    return Region(
+        int(region.left * sx),
+        int(region.top * sy),
+        int(region.width * sx),
+        int(region.height * sy),
+    )
+
+
+def scale_value(
+    value: int,
+    reference: Resolution | None,
+    window_size: tuple[int, int] | None,
+    axis: str = "y",
+) -> int:
+    if not reference or not window_size:
+        return value
+    ratio = window_size[0] / reference.width if axis == "x" else window_size[1] / reference.height
+    return int(value * ratio)
+
+
+def _load_trade_dialog(data: dict[str, Any]) -> dict[str, Point]:
+    if "trade_dialog" in data:
+        td = data["trade_dialog"]
+        return {
+            "submit_button": Point(td["submit_button"]["x"], td["submit_button"]["y"]),
+            "complete_button": Point(td["complete_button"]["x"], td["complete_button"]["y"]),
+        }
+    cd = data["confirm_dialog"]
+    confirm = Point(cd["confirm_button"]["x"], cd["confirm_button"]["y"])
+    return {
+        "submit_button": confirm,
+        "complete_button": confirm,
+    }
+
+
+def _load_reference_resolution(data: dict[str, Any]) -> Resolution | None:
+    ref = data.get("reference_resolution")
+    if not ref:
+        return None
+    return Resolution(int(ref["width"]), int(ref["height"]))
+
+
 def load_regions(path: Path | None = None) -> RegionsConfig:
     path = path or CONFIG_DIR / "regions.yaml"
     data = _load_yaml(path)
@@ -109,7 +180,6 @@ def load_regions(path: Path | None = None) -> RegionsConfig:
     ml = data["market_list"]
     rb = data["refresh_button"]
     bb = data["buy_button"]
-    cd = data["confirm_dialog"]
     ocr = data.get("ocr", {})
 
     return RegionsConfig(
@@ -117,16 +187,14 @@ def load_regions(path: Path | None = None) -> RegionsConfig:
         market_list=Region(ml["left"], ml["top"], ml["width"], ml["height"]),
         refresh_button=Point(rb["x"], rb["y"]),
         buy_button=Point(bb["x"], bb["y"]),
-        confirm_dialog={
-            "confirm_button": Point(cd["confirm_button"]["x"], cd["confirm_button"]["y"]),
-            "cancel_button": Point(cd["cancel_button"]["x"], cd["cancel_button"]["y"]),
-        },
+        trade_dialog=_load_trade_dialog(data),
         row_height=int(data.get("row_height", 40)),
         ocr=OcrConfig(
             lang=ocr.get("lang", "chi_sim+eng"),
             psm=int(ocr.get("psm", 6)),
             whitelist=ocr.get("whitelist", ""),
         ),
+        reference_resolution=_load_reference_resolution(data),
     )
 
 
@@ -189,17 +257,27 @@ def regions_to_dict(config: RegionsConfig) -> dict[str, Any]:
             "x": config.buy_button.x,
             "y": config.buy_button.y,
         },
-        "confirm_dialog": {
-            "confirm_button": {
-                "x": config.confirm_dialog["confirm_button"].x,
-                "y": config.confirm_dialog["confirm_button"].y,
+        "trade_dialog": {
+            "submit_button": {
+                "x": config.trade_dialog["submit_button"].x,
+                "y": config.trade_dialog["submit_button"].y,
             },
-            "cancel_button": {
-                "x": config.confirm_dialog["cancel_button"].x,
-                "y": config.confirm_dialog["cancel_button"].y,
+            "complete_button": {
+                "x": config.trade_dialog["complete_button"].x,
+                "y": config.trade_dialog["complete_button"].y,
             },
         },
         "row_height": config.row_height,
+        **(
+            {
+                "reference_resolution": {
+                    "width": config.reference_resolution.width,
+                    "height": config.reference_resolution.height,
+                }
+            }
+            if config.reference_resolution
+            else {}
+        ),
         "ocr": {
             "lang": config.ocr.lang,
             "psm": config.ocr.psm,
@@ -212,23 +290,20 @@ def regions_from_dict(data: dict[str, Any]) -> RegionsConfig:
     ml = data["market_list"]
     rb = data["refresh_button"]
     bb = data["buy_button"]
-    cd = data["confirm_dialog"]
     ocr = data.get("ocr", {})
     return RegionsConfig(
         window_title=data.get("window_title", ""),
         market_list=Region(ml["left"], ml["top"], ml["width"], ml["height"]),
         refresh_button=Point(rb["x"], rb["y"]),
         buy_button=Point(bb["x"], bb["y"]),
-        confirm_dialog={
-            "confirm_button": Point(cd["confirm_button"]["x"], cd["confirm_button"]["y"]),
-            "cancel_button": Point(cd["cancel_button"]["x"], cd["cancel_button"]["y"]),
-        },
+        trade_dialog=_load_trade_dialog(data),
         row_height=int(data.get("row_height", 40)),
         ocr=OcrConfig(
             lang=ocr.get("lang", "chi_sim+eng"),
             psm=int(ocr.get("psm", 6)),
             whitelist=ocr.get("whitelist", ""),
         ),
+        reference_resolution=_load_reference_resolution(data),
     )
 
 

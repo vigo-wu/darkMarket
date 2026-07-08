@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -23,6 +24,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config_loader import load_regions
+from src.screen_capture import find_window_by_title, get_primary_monitor, window_to_monitor
 
 # OpenCV 在 Windows 上不支持 Unicode 窗口标题，使用固定英文名称
 WINDOW_NAME = "darkMark Region Picker"
@@ -149,7 +153,55 @@ class RegionPicker:
                 return None
 
 
+def _capture_target(title: str = "") -> tuple[np.ndarray, dict]:
+    """截取游戏窗口；找不到时回退到主显示器"""
+    with mss.mss() as sct:
+        window = find_window_by_title(title) if title else None
+        if window:
+            monitor = window_to_monitor(window)
+            source = {
+                "kind": "window",
+                "title": window.title,
+                "width": window.width,
+                "height": window.height,
+                "left": window.left,
+                "top": window.top,
+            }
+            print(f"已定位游戏窗口: {window.title}")
+            print(f"  位置: ({window.left}, {window.top})  大小: {window.width}x{window.height}")
+            print("  坐标将相对于游戏窗口左上角")
+        else:
+            monitor = get_primary_monitor()
+            source = {
+                "kind": "primary",
+                "width": monitor["width"],
+                "height": monitor["height"],
+                "left": monitor["left"],
+                "top": monitor["top"],
+            }
+            if title:
+                print(f"未找到窗口 \"{title}\"，改为主显示器截图")
+            else:
+                print("未配置 window_title，使用主显示器截图")
+            print(f"  位置: ({monitor['left']}, {monitor['top']})  大小: {monitor['width']}x{monitor['height']}")
+            print("  坐标将相对于主显示器左上角")
+
+        screenshot = np.array(sct.grab(monitor))
+        screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR)
+        return screenshot, source
+
+
 def main():
+    parser = argparse.ArgumentParser(description="darkMark 屏幕区域选取工具")
+    parser.add_argument(
+        "--title",
+        help="游戏窗口标题（默认读取 config/regions.yaml 中的 window_title）",
+    )
+    args = parser.parse_args()
+
+    regions = load_regions()
+    window_title = args.title or regions.window_title
+
     print("=" * 50)
     print("darkMark 屏幕区域选取工具")
     print("=" * 50)
@@ -161,10 +213,7 @@ def main():
     import time
     time.sleep(3)
 
-    with mss.mss() as sct:
-        monitor = sct.monitors[1]
-        screenshot = np.array(sct.grab(monitor))
-        screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR)
+    screenshot, source = _capture_target(window_title)
 
     picker = RegionPicker()
     results: list[dict] = []
@@ -173,7 +222,8 @@ def main():
         ("region", "market_list", "市场列表区域（包含物品名和价格）"),
         ("point", "refresh_button", "刷新按钮位置"),
         ("point", "buy_button", "购买按钮位置（选第一个列表项的购买按钮）"),
-        ("point", "confirm_button", "确认购买对话框的确认按钮"),
+        ("point", "submit_button", "交易界面「提交所需物品」按钮"),
+        ("point", "complete_button", "交易界面「完成交易」按钮"),
     ]
 
     for step_type, label, desc in steps:
@@ -193,18 +243,49 @@ def main():
     print("\n" + "=" * 50)
     print("生成的配置 (复制到 config/regions.yaml):")
     print("=" * 50)
+    if source.get("kind") == "window":
+        print("# 坐标相对于游戏窗口，全屏模式下等同于当前显示器")
+    print(f"reference_resolution:")
+    print(f"  width: {source['width']}")
+    print(f"  height: {source['height']}")
+    if window_title:
+        print(f"window_title: {window_title}")
 
+    region_data: dict[str, dict] = {}
+    point_data: dict[str, dict] = {}
     for r in results:
         if "width" in r:
-            print(f"\n{r['label']}:")
-            print(f"  left: {r['left']}")
-            print(f"  top: {r['top']}")
-            print(f"  width: {r['width']}")
-            print(f"  height: {r['height']}")
+            region_data[r["label"]] = r
         else:
-            print(f"\n{r['label']}:")
-            print(f"  x: {r['x']}")
-            print(f"  y: {r['y']}")
+            point_data[r["label"]] = r
+
+    if "market_list" in region_data:
+        ml = region_data["market_list"]
+        print("market_list:")
+        print(f"  left: {ml['left']}")
+        print(f"  top: {ml['top']}")
+        print(f"  width: {ml['width']}")
+        print(f"  height: {ml['height']}")
+
+    for key in ("refresh_button", "buy_button"):
+        if key in point_data:
+            p = point_data[key]
+            print(f"{key}:")
+            print(f"  x: {p['x']}")
+            print(f"  y: {p['y']}")
+
+    if "submit_button" in point_data or "complete_button" in point_data:
+        print("trade_dialog:")
+        if "submit_button" in point_data:
+            p = point_data["submit_button"]
+            print("  submit_button:")
+            print(f"    x: {p['x']}")
+            print(f"    y: {p['y']}")
+        if "complete_button" in point_data:
+            p = point_data["complete_button"]
+            print("  complete_button:")
+            print(f"    x: {p['x']}")
+            print(f"    y: {p['y']}")
 
     print()
 

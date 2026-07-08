@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from src.config_loader import RegionsConfig, WatchItem, WatchlistConfig
+from src.config_loader import RegionsConfig, WatchItem, WatchlistConfig, scale_region, scale_value
 from src.ocr_engine import OcrEngine
 from src.price_parser import extract_item_price_pairs, fuzzy_match, parse_price
 from src.screen_capture import ScreenCapture
@@ -36,10 +36,11 @@ class MarketScanner:
         self,
         watchlist: WatchlistConfig,
         regions: RegionsConfig,
+        capture: ScreenCapture | None = None,
     ):
         self.watchlist = watchlist
         self.regions = regions
-        self.capture = ScreenCapture(regions.window_title)
+        self.capture = capture or ScreenCapture(regions.window_title)
         self.ocr = OcrEngine(regions.ocr)
         self.matcher = TemplateMatcher()
         self._price_history: dict[str, list[tuple[int, datetime]]] = {}
@@ -51,7 +52,23 @@ class MarketScanner:
             logger.error(f"未找到游戏窗口: {self.regions.window_title}")
             return False
         if window:
-            logger.info(f"已定位游戏窗口: {window.title} ({window.width}x{window.height})")
+            mode = "全屏" if window.is_fullscreen else "窗口"
+            logger.info(
+                f"已定位游戏窗口: {window.title} ({window.width}x{window.height}) "
+                f"[{mode}] @ ({window.left}, {window.top})"
+            )
+            ref = self.regions.reference_resolution
+            if ref:
+                if ref.width != window.width or ref.height != window.height:
+                    logger.info(
+                        f"坐标缩放: 参考 {ref.width}x{ref.height} -> "
+                        f"当前 {window.width}x{window.height}"
+                    )
+            else:
+                logger.warning(
+                    "未设置 reference_resolution，请运行 "
+                    "python tools/region_picker.py 重新校准坐标"
+                )
         self._running = True
         return True
 
@@ -64,7 +81,17 @@ class MarketScanner:
 
     def scan_market(self) -> list[MarketListing]:
         """扫描市场列表区域，返回检测到的物品"""
-        r = self.regions.market_list
+        r = scale_region(
+            self.regions.market_list,
+            self.regions.reference_resolution,
+            self.capture.window_size,
+        )
+        row_height = scale_value(
+            self.regions.row_height,
+            self.regions.reference_resolution,
+            self.capture.window_size,
+            axis="y",
+        )
         image = self.capture.capture_region(r.left, r.top, r.width, r.height)
 
         listings: list[MarketListing] = []
@@ -87,7 +114,7 @@ class MarketScanner:
                 price_region = self._extract_price_near(image, mx, my)
                 price = parse_price(price_region) if price_region else None
                 if price is not None:
-                    row_idx = my // self.regions.row_height
+                    row_idx = my // row_height
                     listings.append(
                         MarketListing(
                             name=item.name,
