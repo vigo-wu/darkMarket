@@ -151,6 +151,48 @@ def scale_value(
     return int(value * ratio)
 
 
+def unscale_point(
+    x: int,
+    y: int,
+    reference: Resolution | None,
+    window_size: tuple[int, int] | None,
+) -> tuple[int, int]:
+    if not reference or not window_size or window_size[0] <= 0 or window_size[1] <= 0:
+        return x, y
+    sx = reference.width / window_size[0]
+    sy = reference.height / window_size[1]
+    return round(x * sx), round(y * sy)
+
+
+def unscale_region(
+    region: Region,
+    reference: Resolution | None,
+    window_size: tuple[int, int] | None,
+) -> Region:
+    if not reference or not window_size or window_size[0] <= 0 or window_size[1] <= 0:
+        return region
+    sx = reference.width / window_size[0]
+    sy = reference.height / window_size[1]
+    return Region(
+        round(region.left * sx),
+        round(region.top * sy),
+        round(region.width * sx),
+        round(region.height * sy),
+    )
+
+
+def unscale_value(
+    value: int,
+    reference: Resolution | None,
+    window_size: tuple[int, int] | None,
+    axis: str = "y",
+) -> int:
+    if not reference or not window_size or window_size[0] <= 0 or window_size[1] <= 0:
+        return value
+    ratio = reference.width / window_size[0] if axis == "x" else reference.height / window_size[1]
+    return round(value * ratio)
+
+
 def _load_trade_dialog(data: dict[str, Any]) -> dict[str, Point]:
     if "trade_dialog" in data:
         td = data["trade_dialog"]

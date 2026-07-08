@@ -4,7 +4,8 @@ darkMark - PC 游戏市场自动检测与购买脚本
 用法:
   python -m src.main              # 启动监控
   python -m src.main --dry-run    # 试运行（只检测不购买）
-  python -m src.main --test-click # 测试刷新按钮点击（3秒后执行一次）
+  python -m src.main --overlay    # 在游戏窗口上显示坐标标注
+  python tools/coord_overlay.py   # 同上（独立工具）
   python tools/region_picker.py   # 配置屏幕区域
 """
 
@@ -127,7 +128,21 @@ def main():
         action="store_true",
         help="测试刷新按钮点击（3秒后移动鼠标并点击一次）",
     )
+    parser.add_argument(
+        "--overlay",
+        action="store_true",
+        help="在游戏窗口上方显示坐标标注（Esc 退出）",
+    )
     args = parser.parse_args()
+
+    if args.overlay:
+        logger.info("3 秒后在游戏窗口上方显示坐标标注")
+        logger.info("Ctrl+E 切换显示/编辑 | 编辑模式下 Ctrl+S 保存 | Esc 退出")
+        time.sleep(3)
+        from src.coord_overlay import run_overlay
+
+        run_overlay(load_regions())
+        return
 
     dry_run = True
     if args.live:

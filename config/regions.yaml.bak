@@ -1,14 +1,14 @@
 window_title: Dark and Darker
 market_list:
   left: 67
-  top: 562
-  width: 2430
-  height: 880
+  top: 561
+  width: 2421
+  height: 916
 refresh_button:
   x: 2399
   y: 502
 buy_button:
-  x: 2317
+  x: 2102
   y: 0
 trade_dialog:
   submit_button:
