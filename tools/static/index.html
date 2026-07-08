@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>darkMark 配置</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #222633;
+      --border: #2d3348;
+      --text: #e8eaed;
+      --text-muted: #8b92a8;
+      --accent: #6c8cff;
+      --accent-hover: #8aa4ff;
+      --success: #3dd68c;
+      --danger: #f07178;
+      --warning: #ffcc66;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    .header-actions { display: flex; gap: 8px; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .tab {
+      padding: 10px 18px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.95rem;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.8rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .checkbox-field {
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover { background: var(--surface-hover); }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-danger {
+      color: var(--danger);
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .btn-danger:hover { background: rgba(240, 113, 120, 0.1); }
+
+    .items-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr 60px 36px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .item-row input[type="text"],
+    .item-row input[type="number"] {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+
+    .item-row .enabled-cell {
+      display: flex;
+      justify-content: center;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .hint code {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+
+    .section-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 16px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (max-width: 640px) {
+      .item-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span>darkMark</span> 配置中心</h1>
+      <div class="header-actions">
+        <button class="btn" id="btnReload">重新加载</button>
+        <button class="btn btn-primary" id="btnSave">保存配置</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="watchlist">监控物品</button>
+      <button class="tab" data-tab="settings">全局设置</button>
+      <button class="tab" data-tab="regions">屏幕区域</button>
+    </nav>
+
+    <!-- 监控物品 -->
+    <section class="panel active" id="panel-watchlist">
+      <div class="card">
+        <div class="items-header">
+          <h2>监控列表</h2>
+          <button class="btn" id="btnAddItem">+ 添加物品</button>
+        </div>
+        <div id="itemsList"></div>
+        <p class="hint">物品名称用于 OCR 模糊匹配。可选填写模板图片路径以启用图像匹配（更可靠）。</p>
+      </div>
+    </section>
+
+    <!-- 全局设置 -->
+    <section class="panel" id="panel-settings">
+      <div class="card">
+        <h2>运行参数</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="refresh_interval">刷新间隔（秒）</label>
+            <input type="number" id="refresh_interval" min="0.5" step="0.1">
+          </div>
+          <div class="field">
+            <label for="click_delay">点击间隔（秒）</label>
+            <input type="number" id="click_delay" min="0" step="0.1">
+          </div>
+          <div class="field">
+            <label for="fuzzy_match_threshold">名称模糊匹配阈值 (0-1)</label>
+            <input type="number" id="fuzzy_match_threshold" min="0" max="1" step="0.05">
+          </div>
+          <div class="field">
+            <label for="price_tolerance">价格容差（金币）</label>
+            <input type="number" id="price_tolerance" min="0" step="1">
+          </div>
+          <div class="field checkbox-field">
+            <input type="checkbox" id="dry_run">
+            <label for="dry_run">试运行模式（只检测，不购买）</label>
+          </div>
+        </div>
+        <p class="hint">首次使用建议保持试运行模式，确认检测准确后再关闭。</p>
+      </div>
+    </section>
+
+    <!-- 屏幕区域 -->
+    <section class="panel" id="panel-regions">
+      <div class="card">
+        <h2>窗口与列表</h2>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="window_title">游戏窗口标题</label>
+            <input type="text" id="window_title" placeholder="Dark and Darker">
+          </div>
+          <div class="field">
+            <label for="ml_left">列表 left</label>
+            <input type="number" id="ml_left">
+          </div>
+          <div class="field">
+            <label for="ml_top">列表 top</label>
+            <input type="number" id="ml_top">
+          </div>
+          <div class="field">
+            <label for="ml_width">列表 width</label>
+            <input type="number" id="ml_width">
+          </div>
+          <div class="field">
+            <label for="ml_height">列表 height</label>
+            <input type="number" id="ml_height">
+          </div>
+          <div class="field">
+            <label for="row_height">列表行高</label>
+            <input type="number" id="row_height" min="1">
+          </div>
+        </div>
+
+        <p class="section-title">按钮坐标</p>
+        <div class="form-grid">
+          <div class="field">
+            <label for="refresh_x">刷新按钮 X</label>
+            <input type="number" id="refresh_x">
+          </div>
+          <div class="field">
+            <label for="refresh_y">刷新按钮 Y</label>
+            <input type="number" id="refresh_y">
+          </div>
+          <div class="field">
+            <label for="buy_x">购买按钮 X</label>
+            <input type="number" id="buy_x">
+          </div>
+          <div class="field">
+            <label for="buy_y">购买按钮 Y（0=动态）</label>
+            <input type="number" id="buy_y">
+          </div>
+          <div class="field">
+            <label for="confirm_x">确认按钮 X</label>
+            <input type="number" id="confirm_x">
+          </div>
+          <div class="field">
+            <label for="confirm_y">确认按钮 Y</label>
+            <input type="number" id="confirm_y">
+          </div>
+          <div class="field">
+            <label for="cancel_x">取消按钮 X</label>
+            <input type="number" id="cancel_x">
+          </div>
+          <div class="field">
+            <label for="cancel_y">取消按钮 Y</label>
+            <input type="number" id="cancel_y">
+          </div>
+        </div>
+
+        <p class="section-title">OCR 设置</p>
+        <div class="form-grid">
+          <div class="field">
+            <label for="ocr_lang">语言</label>
+            <input type="text" id="ocr_lang" placeholder="chi_sim+eng">
+          </div>
+          <div class="field">
+            <label for="ocr_psm">PSM 模式</label>
+            <input type="number" id="ocr_psm" min="0" max="13">
+          </div>
+          <div class="field full">
+            <label for="ocr_whitelist">字符白名单</label>
+            <input type="text" id="ocr_whitelist">
+          </div>
+        </div>
+        <p class="hint">推荐使用 <code>python tools/region_picker.py</code> 可视化选取屏幕区域，再在此微调数值。</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let watchlist = { items: [], settings: {} };
+    let regions = {};
+
+    const $ = (id) => document.getElementById(id);
+
+    function showToast(msg, type = "success") {
+      const t = $("toast");
+      t.textContent = msg;
+      t.className = `toast show ${type}`;
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(path, {
+        headers: { "Content-Type": "application/json" },
+        ...opts,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "请求失败");
+      return data;
+    }
+
+    function renderItems() {
+      const list = $("itemsList");
+      list.innerHTML = "";
+      watchlist.items.forEach((item, i) => {
+        const row = document.createElement("div");
+        row.className = "item-row";
+        row.innerHTML = `
+          <input type="text" placeholder="物品名称" value="${esc(item.name)}" data-field="name" data-i="${i}">
+          <input type="number" placeholder="最高价" min="0" value="${item.max_price}" data-field="max_price" data-i="${i}">
+          <input type="text" placeholder="模板路径（可选）" value="${esc(item.template || "")}" data-field="template" data-i="${i}">
+          <div class="enabled-cell"><input type="checkbox" ${item.enabled ? "checked" : ""} data-field="enabled" data-i="${i}"></div>
+          <button class="btn btn-danger" data-remove="${i}" title="删除">✕</button>
+        `;
+        list.appendChild(row);
+      });
+
+      list.querySelectorAll("input").forEach((el) => {
+        el.addEventListener("change", () => {
+          const i = +el.dataset.i;
+          const field = el.dataset.field;
+          if (field === "enabled") {
+            watchlist.items[i].enabled = el.checked;
+          } else if (field === "max_price") {
+            watchlist.items[i].max_price = +el.value;
+          } else if (field === "template") {
+            watchlist.items[i].template = el.value || null;
+          } else {
+            watchlist.items[i][field] = el.value;
+          }
+        });
+      });
+
+      list.querySelectorAll("[data-remove]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          watchlist.items.splice(+btn.dataset.remove, 1);
+          renderItems();
+        });
+      });
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function fillSettings() {
+      const s = watchlist.settings;
+      $("refresh_interval").value = s.refresh_interval;
+      $("click_delay").value = s.click_delay;
+      $("fuzzy_match_threshold").value = s.fuzzy_match_threshold;
+      $("price_tolerance").value = s.price_tolerance;
+      $("dry_run").checked = s.dry_run;
+    }
+
+    function fillRegions() {
+      $("window_title").value = regions.window_title || "";
+      const ml = regions.market_list;
+      $("ml_left").value = ml.left;
+      $("ml_top").value = ml.top;
+      $("ml_width").value = ml.width;
+      $("ml_height").value = ml.height;
+      $("row_height").value = regions.row_height;
+      $("refresh_x").value = regions.refresh_button.x;
+      $("refresh_y").value = regions.refresh_button.y;
+      $("buy_x").value = regions.buy_button.x;
+      $("buy_y").value = regions.buy_button.y;
+      $("confirm_x").value = regions.confirm_dialog.confirm_button.x;
+      $("confirm_y").value = regions.confirm_dialog.confirm_button.y;
+      $("cancel_x").value = regions.confirm_dialog.cancel_button.x;
+      $("cancel_y").value = regions.confirm_dialog.cancel_button.y;
+      $("ocr_lang").value = regions.ocr.lang;
+      $("ocr_psm").value = regions.ocr.psm;
+      $("ocr_whitelist").value = regions.ocr.whitelist || "";
+    }
+
+    function collectSettings() {
+      watchlist.settings = {
+        refresh_interval: +$("refresh_interval").value,
+        click_delay: +$("click_delay").value,
+        fuzzy_match_threshold: +$("fuzzy_match_threshold").value,
+        price_tolerance: +$("price_tolerance").value,
+        dry_run: $("dry_run").checked,
+      };
+    }
+
+    function collectRegions() {
+      regions = {
+        window_title: $("window_title").value,
+        market_list: {
+          left: +$("ml_left").value,
+          top: +$("ml_top").value,
+          width: +$("ml_width").value,
+          height: +$("ml_height").value,
+        },
+        refresh_button: { x: +$("refresh_x").value, y: +$("refresh_y").value },
+        buy_button: { x: +$("buy_x").value, y: +$("buy_y").value },
+        confirm_dialog: {
+          confirm_button: { x: +$("confirm_x").value, y: +$("confirm_y").value },
+          cancel_button: { x: +$("cancel_x").value, y: +$("cancel_y").value },
+        },
+        row_height: +$("row_height").value,
+        ocr: {
+          lang: $("ocr_lang").value,
+          psm: +$("ocr_psm").value,
+          whitelist: $("ocr_whitelist").value,
+        },
+      };
+    }
+
+    async function loadConfig() {
+      const data = await api("/api/config");
+      watchlist = data.watchlist;
+      regions = data.regions;
+      renderItems();
+      fillSettings();
+      fillRegions();
+      showToast("配置已加载");
+    }
+
+    async function saveConfig() {
+      collectSettings();
+      collectRegions();
+      await api("/api/config", {
+        method: "POST",
+        body: JSON.stringify({ watchlist, regions }),
+      });
+      showToast("配置已保存到 config/ 目录");
+    }
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        tab.classList.add("active");
+        $(`panel-${tab.dataset.tab}`).classList.add("active");
+      });
+    });
+
+    $("btnAddItem").addEventListener("click", () => {
+      watchlist.items.push({ name: "", max_price: 0, enabled: true, template: null });
+      renderItems();
+    });
+
+    $("btnReload").addEventListener("click", () => loadConfig().catch((e) => showToast(e.message, "error")));
+    $("btnSave").addEventListener("click", () => saveConfig().catch((e) => showToast(e.message, "error")));
+
+    loadConfig().catch((e) => showToast(e.message, "error"));
+  </script>
+</body>
+</html>

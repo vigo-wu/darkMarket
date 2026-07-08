@@ -48,6 +48,16 @@ python tools/region_picker.py
 
 ### 2. 配置监控物品
 
+**方式 A：可视化配置页面（推荐）**
+
+```bash
+python tools/config_ui.py
+```
+
+浏览器会自动打开配置中心，可编辑监控物品、全局设置和屏幕区域，点击「保存配置」写入 `config/` 目录。
+
+**方式 B：手动编辑 YAML**
+
 编辑 `config/watchlist.yaml`：
 
 ```yaml
@@ -87,7 +97,9 @@ darkMark/
 │   ├── price_parser.py   # 价格解析
 │   └── template_matcher.py
 ├── tools/
-│   └── region_picker.py  # 区域选取工具
+│   ├── region_picker.py  # 区域选取工具
+│   ├── config_ui.py      # 可视化配置页面
+│   └── static/           # 配置页面静态资源
 ├── assets/templates/     # 物品图标模板（可选）
 └── logs/                 # 运行日志
 ```

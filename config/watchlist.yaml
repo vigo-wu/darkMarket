@@ -1,23 +1,10 @@
-# 监控物品列表
-# name: 物品名称（用于 OCR 模糊匹配）
-# max_price: 最高购买价格（金币）
-# template: 可选，物品图标模板图片路径（用于图像匹配，比 OCR 更可靠）
-# enabled: 是否启用监控
-
 items:
-  - name: "红宝石戒指"
-    max_price: 500
-    enabled: true
-    # template: "assets/templates/ruby_ring.png"
-
-  - name: "治疗药水"
-    max_price: 50
-    enabled: true
-
-# 全局设置
+- name: 红宝石戒指
+  max_price: 500
+  enabled: true
 settings:
-  refresh_interval: 2.0        # 刷新间隔（秒）
-  click_delay: 0.3             # 点击间隔（秒）
-  dry_run: true                # 试运行模式：只检测不购买
-  fuzzy_match_threshold: 0.7   # 物品名称模糊匹配阈值 (0-1)
-  price_tolerance: 0           # 价格容差（允许略高于 max_price 的误差）
+  refresh_interval: 2.0
+  click_delay: 0.3
+  dry_run: true
+  fuzzy_match_threshold: 0.7
+  price_tolerance: 0

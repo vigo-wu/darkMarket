@@ -1,27 +1,15 @@
-# 屏幕区域配置（像素坐标，相对于游戏窗口或全屏）
-# 使用 tools/region_picker.py 工具来选取区域
-
-# 游戏窗口标题（用于定位窗口，留空则使用全屏）
-window_title: "Dark and Darker"
-
-# 市场列表区域 - 包含物品名称和价格的区域
+window_title: Dark and Darker
 market_list:
   left: 100
   top: 200
   width: 600
   height: 400
-
-# 刷新按钮位置（点击坐标）
 refresh_button:
   x: 700
   y: 150
-
-# 购买按钮位置（相对于每个列表项的偏移，或固定坐标）
 buy_button:
   x: 650
-  y: 0  # 0 表示使用动态计算（基于检测到的物品行）
-
-# 确认购买对话框
+  y: 0
 confirm_dialog:
   confirm_button:
     x: 500
@@ -29,12 +17,8 @@ confirm_dialog:
   cancel_button:
     x: 600
     y: 400
-
-# 单个列表项高度（用于计算点击位置）
 row_height: 40
-
-# OCR 预处理
 ocr:
-  lang: "chi_sim+eng"   # 中英文混合识别
-  psm: 6              # Tesseract page segmentation mode
-  whitelist: "0123456789,./\\goldGOLD金币"
+  lang: chi_sim+eng
+  psm: 6
+  whitelist: 0123456789,./\goldGOLD金币
