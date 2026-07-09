@@ -29,8 +29,9 @@ from src.config_loader import (  # noqa: E402
     watchlist_to_dict,
     regions_to_dict,
 )
+from src.paths import ensure_runtime_layout, tools_static_dir  # noqa: E402
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+STATIC_DIR = tools_static_dir()
 DEFAULT_PORT = 8765
 
 
@@ -94,6 +95,8 @@ class ConfigHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    ensure_runtime_layout()
+
     parser = argparse.ArgumentParser(description="darkMark 可视化配置页面")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="监听端口")
     parser.add_argument("--no-browser", action="store_true", help="不自动打开浏览器")

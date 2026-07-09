@@ -1,0 +1,2 @@
+# 打包专用依赖（开发/运行见 requirements.txt）
+pyinstaller>=6.0

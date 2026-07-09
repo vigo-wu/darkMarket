@@ -5,10 +5,9 @@ from __future__ import annotations
 import logging
 import sys
 from datetime import datetime
-from pathlib import Path
+from src.paths import log_dir
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-LOG_DIR = PROJECT_ROOT / "logs"
+LOG_DIR = log_dir()
 
 
 def setup_logger(name: str = "darkMark") -> logging.Logger:

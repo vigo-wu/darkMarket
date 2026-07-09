@@ -7,6 +7,7 @@ from datetime import datetime
 
 from src.config_loader import RegionsConfig, WatchItem, WatchlistConfig, scale_region, scale_value
 from src.ocr_engine import OcrEngine
+from src.paths import resolve_asset
 from src.price_parser import extract_item_price_pairs, fuzzy_match, parse_price
 from src.screen_capture import ScreenCapture
 from src.template_matcher import TemplateMatcher
@@ -108,7 +109,7 @@ class MarketScanner:
         for item in self.watchlist.items:
             if not item.enabled or not item.template:
                 continue
-            matches = self.matcher.find_template(image, item.template)
+            matches = self.matcher.find_template(image, resolve_asset(item.template))
             for mx, my, conf in matches:
                 # 在模板附近区域 OCR 读取价格
                 price_region = self._extract_price_near(image, mx, my)

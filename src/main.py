@@ -4,6 +4,7 @@ darkMark - PC 游戏市场自动检测与购买脚本
 用法:
   python -m src.main              # 启动监控
   python -m src.main --dry-run    # 试运行（只检测不购买）
+  python -m src.main --test-ocr   # 单次 OCR 测试（截图并输出识别结果）
   python -m src.main --overlay    # 在游戏窗口上显示坐标标注
   python tools/coord_overlay.py   # 同上（独立工具）
   python tools/region_picker.py   # 配置屏幕区域
@@ -20,6 +21,7 @@ import keyboard
 from src.auto_buyer import AutoBuyer
 from src.config_loader import load_regions, load_watchlist
 from src.market_scanner import MarketScanner
+from src.paths import configure_tesseract, ensure_runtime_layout
 from src.screen_capture import ScreenCapture
 from src.utils.logger import setup_logger
 
@@ -112,6 +114,9 @@ class MarketBot:
 
 
 def main():
+    ensure_runtime_layout()
+    configure_tesseract()
+
     parser = argparse.ArgumentParser(description="darkMark 游戏市场监控")
     parser.add_argument(
         "--dry-run",
@@ -129,11 +134,24 @@ def main():
         help="测试刷新按钮点击（3秒后移动鼠标并点击一次）",
     )
     parser.add_argument(
+        "--test-ocr",
+        action="store_true",
+        help="OCR 测试（3秒后截图，终端输出识别结果并保存到 logs/ocr_test/）",
+    )
+    parser.add_argument(
         "--overlay",
         action="store_true",
         help="在游戏窗口上方显示坐标标注（Esc 退出）",
     )
     args = parser.parse_args()
+
+    if args.test_ocr:
+        from src.ocr_test import run_ocr_test
+
+        logger.info("OCR 测试模式：3 秒后截图")
+        logger.info("请保持游戏在市场界面，截图后终端会输出识别结果")
+        ok = run_ocr_test(load_regions(), load_watchlist())
+        sys.exit(0 if ok else 1)
 
     if args.overlay:
         logger.info("3 秒后在游戏窗口上方显示坐标标注")

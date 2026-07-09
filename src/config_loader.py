@@ -8,8 +8,9 @@ from typing import Any
 
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CONFIG_DIR = PROJECT_ROOT / "config"
+from src.paths import config_dir
+
+CONFIG_DIR = config_dir()
 
 
 @dataclass
